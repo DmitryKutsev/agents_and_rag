@@ -1,13 +1,17 @@
-from dotenv import load_dotenv
+import sys
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from typing import List
 from loguru import logger
+from dotenv import load_dotenv
 
-from langchain.llms import OpenAI
+from langchain_openai import ChatOpenAI
 from langchain.agents import AgentType, Tool, initialize_agent
 
-# /workspaces/agents_and_rag/agents/react/tools.py
-from tools import test_len_tool
+from react.tools import test_len_tool
 
 class myChatGPTReactAgent():
     """
@@ -15,7 +19,8 @@ class myChatGPTReactAgent():
     """
     
     def __init__(self):
-        self.llm = OpenAI(temperature=0, model_name="gpt-3.5-turbo")
+        self.llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.0)
+        #self.llm = OpenAI(temperature=0, model_name="gpt-3.5-turbo")
         self.template = """
     Given a query {query}, find the information about the question in the query and sent the information as a response.
     """
@@ -50,10 +55,13 @@ class myChatGPTReactAgent():
         logger.info(f"Got result: {result}")
         return result
 
-
-if __name__ == "__main__":
-    load_dotenv()
+def get_react_agent():
     agent = myChatGPTReactAgent()
     tools = [test_len_tool()]
     agent.init_agent(tools)
-    agent.run_agent("What is the len of this query?")
+    return agent
+    
+if __name__ == "__main__":
+    load_dotenv()
+    agent = get_react_agent()
+    result = agent.run_agent("What is the len of this query?")
