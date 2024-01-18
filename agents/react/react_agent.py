@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain.agents import AgentType, Tool, initialize_agent
 
-from react.tools import test_len_tool
+from react.tools import measure_len_tool, sql_search_tool, job_description_search_tool
 
 class myChatGPTReactAgent():
     """
@@ -57,7 +57,7 @@ class myChatGPTReactAgent():
 
 def get_react_agent():
     agent = myChatGPTReactAgent()
-    tools = [test_len_tool()]
+    tools = [measure_len_tool()]
     agent.init_agent(tools)
     return agent
     
