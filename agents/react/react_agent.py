@@ -1,9 +1,11 @@
+from dotenv import load_dotenv
+
 from typing import List
 from loguru import logger
 
 from langchain.llms import OpenAI
-from langchain.prompts import PromptTemplate
 from langchain.agents import AgentType, Tool, initialize_agent
+
 # /workspaces/agents_and_rag/agents/react/tools.py
 from tools import test_len_tool
 
@@ -29,7 +31,7 @@ class myChatGPTReactAgent():
         tools=tools_list,
         llm=self.llm,
         agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-        # return_intermediate_steps=True,
+        return_intermediate_steps=True, 
         verbose=True,
         handle_parsing_errors=True,
     )
@@ -43,12 +45,14 @@ class myChatGPTReactAgent():
         prompt_template = self.template.format(query=query)
 
         logger.info(f"Running agent with template: {prompt_template}")
-        result = self.agent.run(prompt_template)
+        result = self.agent.invoke(prompt_template)
+
         logger.info(f"Got result: {result}")
         return result
 
 
 if __name__ == "__main__":
+    load_dotenv()
     agent = myChatGPTReactAgent()
     tools = [test_len_tool()]
     agent.init_agent(tools)

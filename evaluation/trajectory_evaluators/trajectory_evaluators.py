@@ -1,13 +1,14 @@
 from typing import Any, Optional, Sequence, Tuple
 
 from langchain.chains import LLMChain
-from langchain.evaluation import AgentTrajectoryEvaluator, load_evaluator
+from langchain.evaluation import AgentTrajectoryEvaluator
+from langchain.evaluation import load_evaluator
 from langchain.schema import AgentAction
 from langchain_openai import ChatOpenAI
 
 
 class HelpfulnessEvaluator(AgentTrajectoryEvaluator):
-    """The default trajectory evaluator that returns whether the result is helpful."""
+    """The default trajectory evaluator that returns whether the result is helpful, and thus achieved it's goal."""
 
     def __init__(self) -> None:
         self.evaluator = load_evaluator("trajectory")
