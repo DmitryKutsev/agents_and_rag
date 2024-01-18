@@ -1,0 +1,23 @@
+[project]
+name = "agents_and_rag"
+version = "0.1.0"
+description = "Default template for PDM package"
+authors = [
+    {name = "dima_in_the_forest", email = "dmitry.kutsev@sogeti.com"},
+]
+dependencies = [
+    "langchain>=0.1.0",
+    "pandas>=2.1.4",
+    "ipykernel>=6.28.0",
+    "faiss-cpu>=1.7.4",
+    "tiktoken>=0.5.2",
+    "openai>=1.7.2",
+    "loguru>=0.7.2",
+]
+requires-python = "==3.10.*"
+readme = "README.md"
+license = {text = "MIT"}
+
+
+[tool.pdm]
+package-type = "application"
