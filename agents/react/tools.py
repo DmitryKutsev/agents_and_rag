@@ -48,4 +48,3 @@ def test_len_tool():
     func=measure_len,
     description="Use when you need to measure the length of the query",
     )
-    return len(query)
