@@ -6,12 +6,12 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from typing import List
 from loguru import logger
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
 from langchain_openai import ChatOpenAI
 from langchain.agents import AgentType, Tool, initialize_agent
 
-from react.tools import measure_len_tool, sql_search_tool, job_description_search_tool
+from react.tools import measure_len_tool, sql_search_tool, job_description_search_tool, sql_llm_search_tool
 
 class myChatGPTReactAgent():
     """
@@ -57,11 +57,11 @@ class myChatGPTReactAgent():
 
 def get_react_agent():
     agent = myChatGPTReactAgent()
-    tools = [measure_len_tool()]
+    tools = [measure_len_tool(), sql_llm_search_tool(), job_description_search_tool()]
     agent.init_agent(tools)
     return agent
     
 if __name__ == "__main__":
-    load_dotenv()
+    # load_dotenv()
     agent = get_react_agent()
     result = agent.run_agent("What is the len of this query?")

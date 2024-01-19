@@ -1,12 +1,33 @@
 from langchain.agents import Tool
+from langchain_openai import ChatOpenAI
+from langchain_community.utilities import SQLDatabase
+from langchain.chains import create_sql_query_chain
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 import sqlite3
 import json
 
+def sql_query_chain(query: str) -> str:
+    """Search in the company database using natural language that is converted to an sql query by an llm"""
+    db = SQLDatabase.from_uri("sqlite:///../data/companies.db")
+    chain = create_sql_query_chain(ChatOpenAI(model="gpt-3.5-turbo", temperature=0.0), db)
+    result_query = chain.invoke({"question": query})
+    con = sqlite3.connect("../data/companies.db")
+    cursor = con.cursor()
+    rows = cursor.execute(result_query).fetchall()
+    return json.dumps(rows)
+
+def sql_llm_search_tool():
+    """Tool to perform SQL searches on the company dataset."""
+    return Tool(
+        name="Company dataset SQL search",
+        func=sql_query_chain,
+        description="Use to ask a non-sql question about the companies dataset."
+    )
+
 def company_sql_search(query: str) -> str:
     """Search in a company database using an SQL query and return results as a string."""
-    con = sqlite3.connect("companies.db")
+    con = sqlite3.connect("../data/companies.db")
     cursor = con.cursor()
     rows = cursor.execute(query).fetchall()
 
