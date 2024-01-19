@@ -23,6 +23,5 @@ To dive into the project:
 1. Clone the repository.
 2. Explore the `/agents`, `/tests`, `/evaluations`, and `/data` directories to understand the existing structure and codebase.
 3. Delve into the `explanation` notebooks (found in each folder) for comprehensive explanations and development ideas.
-4. Follow the setup guidelines in the notebooks to prepare your development environment.
 
 Thank you for being part of the "Agents Meet RAG" hackathon. Happy coding and exploring!
