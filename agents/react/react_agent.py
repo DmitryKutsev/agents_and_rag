@@ -56,7 +56,8 @@ class myChatGPTReactAgent():
 
 def get_react_agent():
     agent = myChatGPTReactAgent()
-    tools = [measure_len_tool()]
+    tools = [measure_len_tool(), sql_search_tool(), job_description_search_tool()]
+    #tools = [measure_len_tool()]
     agent.init_agent(tools)
     return agent
     
