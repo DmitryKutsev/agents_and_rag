@@ -7,12 +7,14 @@ from langchain_openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 import sqlite3
 import json
+from loguru import logger
 
 def sql_search(query: str) -> str:
     """Search in the company database using natural language that is converted to an sql query by an llm"""
     db = SQLDatabase.from_uri("sqlite:///data/companies.db")
     chain = create_sql_query_chain(ChatOpenAI(model="gpt-3.5-turbo", temperature=0.0), db)
     result_query = chain.invoke({"question": query})
+    logger.info(f"Generated query: \n{result_query}")
     con = sqlite3.connect("data/companies.db")
     cursor = con.cursor()
     rows = cursor.execute(result_query).fetchall()
@@ -21,7 +23,7 @@ def sql_search(query: str) -> str:
 def sql_search_tool():
     """Tool to perform SQL searches on the company dataset."""
     return Tool(
-        name="Company dataset SQL search",
+        name="Company dataset natural language search",
         func=sql_search,
         description="Use to ask a non-sql question about the companies dataset."
     )
