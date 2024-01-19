@@ -20,7 +20,6 @@ class myChatGPTReactAgent():
     
     def __init__(self):
         self.llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.0)
-        #self.llm = OpenAI(temperature=0, model_name="gpt-3.5-turbo")
         self.template = """
     Given a query {query}, find the information about the question in the query and sent the information as a response.
     """
