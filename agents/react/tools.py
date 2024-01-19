@@ -7,6 +7,44 @@ from langchain_openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 import sqlite3
 import json
+import requests
+from langchain_community.document_loaders import YoutubeLoader
+
+def yt_search(query: str) -? str:
+    """Get access to the proper youtube transcript
+    Logic to implement: Create a method to do a API call and fetch the result"""
+
+    api_key = 'YOUR_API_KEY'
+
+    # Define the base URL for the YouTube Data API v3.
+    base_url = 'https://www.googleapis.com/youtube/v3/'
+
+    # Input query from agent
+    
+    search_url = f'{base_url}search?key={api_key}&q={search_query}&maxResults={max_results}&part=snippet&type=video'
+    # Send the GET request to the API.
+    response = requests.get(search_url)
+
+    # First ask llm to convert query to good search terms -> input in description
+    first_video_id = data['items'][0]['id']['videoId']
+    video_url = f'https://www.youtube.com/watch?v={first_video_id}'
+
+    # Get top n videos
+    loader = YoutubeLoader.from_youtube_url(
+    "https://www.youtube.com/watch?v=QsYGlZkevEg", add_video_info=True)
+    loader.load()
+
+    # Summarize videos with llm
+
+    # Return most relevant results
+
+def yt_search_tool():
+    """Tool to perform SQL searches on the company dataset."""
+    return Tool(
+        name="Beginner Youtube search",
+        func=yt_search,
+        description="Translate question into relevant youtube search quey"
+    )
 
 def sql_search(query: str) -> str:
     """Search in the company database using natural language that is converted to an sql query by an llm"""
