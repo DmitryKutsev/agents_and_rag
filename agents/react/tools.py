@@ -10,11 +10,12 @@ import json
 import requests
 from langchain_community.document_loaders import YoutubeLoader
 
-def yt_search(query: str) -? str:
+def yt_search(query: str) -> str:
     """Get access to the proper youtube transcript
     Logic to implement: Create a method to do a API call and fetch the result"""
 
-    api_key = 'YOUR_API_KEY'
+    # Agent defines best search term for the task
+    os.environ.get(yt_api_key) 
 
     # Define the base URL for the YouTube Data API v3.
     base_url = 'https://www.googleapis.com/youtube/v3/'
