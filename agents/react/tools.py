@@ -7,37 +7,30 @@ from langchain_openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 import sqlite3
 import json
-import requests
-from langchain_community.document_loaders import YoutubeLoader
+from youtube_helpers import get_yt_videos, fetch_transcript, YT_create_search_terms_chain
 
 def yt_search(query: str) -> str:
     """Get access to the proper youtube transcript
     Logic to implement: Create a method to do a API call and fetch the result"""
 
-    # Agent defines best search term for the task
-    os.environ.get(yt_api_key) 
+    #Power llm to create effective search terms
+    yt_query = YT_create_search_terms_chain.run(query)
 
-    # Define the base URL for the YouTube Data API v3.
-    base_url = 'https://www.googleapis.com/youtube/v3/'
+    # get top 5 results from youtube
+    youtube_ids = get_yt_videos(yt_query, 5) 
 
-    # Input query from agent
-    
-    search_url = f'{base_url}search?key={api_key}&q={search_query}&maxResults={max_results}&part=snippet&type=video'
-    # Send the GET request to the API.
-    response = requests.get(search_url)
+    # Store all 5 transcripts in a list
+    transcripts = [fetch_transcript(id) for id in youtube_ids]
 
-    # First ask llm to convert query to good search terms -> input in description
-    first_video_id = data['items'][0]['id']['videoId']
-    video_url = f'https://www.youtube.com/watch?v={first_video_id}'
+    # Loop over transcripts and create summary based on initial query
+    # Probably have to also chunk the transcripts and create sub summaries
+    # Paste summaries together
+    # Try to answer your inital query
 
-    # Get top n videos
-    loader = YoutubeLoader.from_youtube_url(
-    "https://www.youtube.com/watch?v=QsYGlZkevEg", add_video_info=True)
-    loader.load()
+    return transcripts
 
-    # Summarize videos with llm
 
-    # Return most relevant results
+   
 
 def yt_search_tool():
     """Tool to perform SQL searches on the company dataset."""
@@ -114,3 +107,5 @@ def measure_len_tool():
         func=measure_len,
         description="Use when you need to measure the length of the query",
     )
+
+print(yt_search("I want to create an authentic but simple pasta bolognese recipe"))

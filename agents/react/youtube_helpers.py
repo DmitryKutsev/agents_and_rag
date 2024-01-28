@@ -2,16 +2,25 @@ from dotenv import load_dotenv
 import os
 import requests
 from youtube_transcript_api import YouTubeTranscriptApi
-
-
-
-
+from langchain.prompts import PromptTemplate
+from langchain_openai import ChatOpenAI
+from langchain.chains import LLMChain
 
 # https://pypi.org/project/youtube-transcript-api/
 # transcript = YouTubeTranscriptApi.get_transcript(youtube_ids[1], languages=['en'])
 # transcript_list = YouTubeTranscriptApi.list_transcripts(youtube_ids[4])
 # transcript = transcript_list.find_manually_created_transcript(['en'])
 # print(transcript.fetch())
+
+llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.0)
+
+search_terms_prompt = PromptTemplate(
+    input_variables=["text_input"],
+    template="I want you to give me a single good youtube search query based on the following prompt:\n\n {text_input}"
+)
+
+YT_create_search_terms_chain = LLMChain(llm=llm, prompt=search_terms_prompt)
+
 
 def get_yt_videos(query: str, max_results: int) -> list:
     """
@@ -38,8 +47,7 @@ def get_yt_videos(query: str, max_results: int) -> list:
     items = data['items']
     return [item['id']['videoId'] for item in items]
 
-videos = get_yt_videos("Investing trends 2023", 10)
-print(videos)
+
 
 def fetch_transcript(video :str) -> str:
     """
@@ -56,11 +64,12 @@ def fetch_transcript(video :str) -> str:
 
     # TO DO: Add if statements to do something else when english transcript is not available
     #filter for english transcript
-    transcript = transcript_list.find_transcript(['en']) .fetch()
+    transcript = transcript_list.find_transcript(['en']).fetch()
 
     text_transcript = [chunk['text'] for chunk in transcript]
     
     return ' '.join(text_transcript)
 
-text = fetch_transcript('VVmYFglwI1w')
-print(text)
+
+
+
