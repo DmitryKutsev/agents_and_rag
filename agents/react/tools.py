@@ -9,10 +9,10 @@ import json
 
 def sql_query_chain(query: str) -> str:
     """Search in the company database using natural language that is converted to an sql query by an llm"""
-    db = SQLDatabase.from_uri("sqlite:///../data/companies.db")
+    db = SQLDatabase.from_uri("sqlite:///data/companies.db")
     chain = create_sql_query_chain(ChatOpenAI(model="gpt-3.5-turbo", temperature=0.0), db)
     result_query = chain.invoke({"question": query})
-    con = sqlite3.connect("../data/companies.db")
+    con = sqlite3.connect("data/companies.db")
     cursor = con.cursor()
     rows = cursor.execute(result_query).fetchall()
     return json.dumps(rows)
@@ -44,10 +44,16 @@ def sql_search_tool():
 def job_description_search(query: str) -> str:
     """Search in job descriptions using similarity search and return results as a string."""
     embeddings = OpenAIEmbeddings()
-    vector_storage = FAISS.load_local("data/faiss_descriptions_index_cut/index", embeddings)
-    results = vector_storage.similarity_search(query)
+    vector_storage = FAISS.load_local("data/faiss_descriptions_index_cut", embeddings)
 
-    return json.dumps(results)
+    results = vector_storage.similarity_search_with_score(query, fetch_k=3)
+    
+    combined_content = ""
+    for i, (doc, probability) in enumerate(results, start=1):
+        page_content = doc.page_content  
+        combined_content += f"Result {i} (Probability: {probability:.2f}):\n{page_content}\n\n"
+
+    return combined_content
 
 def job_description_search_tool():
     """Tool to perform similarity searches on job descriptions."""

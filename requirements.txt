@@ -1,0 +1,7 @@
+langchain>=0.1.0
+pandas>=2.1.4
+ipykernel>=6.28.0
+faiss-cpu>=1.7.4
+tiktoken>=0.5.2
+openai==1.8.0
+loguru>=0.7.2
