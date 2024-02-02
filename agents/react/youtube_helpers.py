@@ -48,28 +48,87 @@ def get_yt_videos(query: str, max_results: int) -> list:
     return [item['id']['videoId'] for item in items]
 
 
-
-def fetch_transcript(video :str) -> str:
+def fetch_transcript(transcript) -> str:
     """
     arguments:
-    video: id of the video
+    transcript: <class 'youtube_transcript_api._transcripts.Transcript'>
 
-    returns english transcript of the video 
+    returns english transcript of the video in string format   
     """
 
     # https://pypi.org/project/youtube-transcript-api/
-
-    #Get available languages
-    transcript_list = YouTubeTranscriptApi.list_transcripts(video)
-
-    # TO DO: Add if statements to do something else when english transcript is not available
-    #filter for english transcript
-    transcript = transcript_list.find_transcript(['en']).fetch()
-
-    text_transcript = [chunk['text'] for chunk in transcript]
-    
+    text_transcript = [chunk['text'] for chunk in transcript.fetch()]
     return ' '.join(text_transcript)
 
+def check_available_languages(video_id, lang_code):
+    """
+    arguments:
+    video_id: id of the video
+    lang_code: Desired language you want your transcript to have
+
+    returns transcript of the video 
+    """ 
+    transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+    transcript_available = False 
+    first_transcript_stored = False
+    translation_available = False
+
+    for transcript in transcript_list:
+        if first_transcript_stored == False:
+            first_transcript = transcript
+            first_transcript_stored = True
+
+        if transcript.language_code == lang_code:
+            final_transcript = transcript.fetch()
+            transcript_available = True
+
+    if transcript_available == False and first_transcript_stored:
+        if first_transcript.is_translatable:
+            language_codes = [language['language_code'] for language in first_transcript.translation_languages]
+            if lang_code in language_codes:
+                translation_available = True
+    
+    if transcript_available:
+        pass
+    elif translation_available:
+        final_transcript = first_transcript.translate(lang_code).fetch()
+    else:
+        final_transcript = None
+
+    
+           
+    return final_transcript
 
 
 
+print(check_available_languages("BJo61jHPAhM", 'orn'))
+
+
+
+
+
+# english_transcript_found = False 
+# first_transcript_stored = False
+
+# for transcript in transcript_list:
+#     if first_transcript_stored == False:
+#         first_transcript = transcript
+#         first_transcript_stored = True
+
+#     if transcript.language_code == 'en':
+#         english_transcript_found = True
+#         final_transcript = transcript.fetch()
+#         pass
+
+# if english_transcript_found == False and first_transcript_stored:
+#     if first_transcript.is_translatable:
+#         language_codes = [language['language_code'] for language in first_transcript.translation_languages]
+#         if 'en' in language_codes:
+#             final_transcript = first_transcript.translate('en')#.fetch()
+#         else:
+#             pass
+
+#     else:
+#         pass
+
+# print(type(final_transcript))#.fetch())
