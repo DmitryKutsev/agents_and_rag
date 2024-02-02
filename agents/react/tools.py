@@ -2,12 +2,16 @@ from langchain.agents import Tool
 from langchain_openai import ChatOpenAI
 from langchain_community.utilities import SQLDatabase
 from langchain.chains import create_sql_query_chain
+from langchain.chains.summarize import load_summarize_chain
 #from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain_openai import OpenAIEmbeddings
+from langchain.document_loaders import YoutubeLoader
 from langchain.vectorstores import FAISS
 import sqlite3
 import json
-from youtube_helpers import get_yt_videos, fetch_transcript, YT_create_search_terms_chain
+from langchain.docstore.document import Document
+from langchain.text_splitter import CharacterTextSplitter, RecursiveCharacterTextSplitter
+from youtube_helpers import get_youtube_video_ids, fetch_transcript, chunk_documents, llm, YT_create_search_terms_chain
 
 def yt_search(query: str) -> str:
     """Get access to the proper youtube transcript
@@ -17,17 +21,37 @@ def yt_search(query: str) -> str:
     yt_query = YT_create_search_terms_chain.run(query)
 
     # get top 5 results from youtube
-    youtube_ids = get_yt_videos(yt_query, 5) 
+    youtube_ids = get_youtube_video_ids(yt_query, 5) 
 
     # Store all 5 transcripts in a list
-    transcripts = [fetch_transcript(id) for id in youtube_ids]
-
+    transcripts = [fetch_transcript(id, 'en') for id in youtube_ids]
+    texts = []
     # Loop over transcripts and create summary based on initial query
+    
+    for transcript in transcripts:
+        #title = Document(page_content=f"\nVIDEO {num + 1}:\n", metadata= {"type": "test"})
+        # print(transcript)
+        #print("\n\nBIG STOP\n\n")
+        #tanscript_list = chunk_documents(transcript)
+        #print(len(tanscript_list))
+        #texts.extend(title)
+        texts.extend(transcript)
+    
+
+    doc_creator = RecursiveCharacterTextSplitter(chunk_size = 2000, chunk_overlap = 100)
+    document = doc_creator.create_documents(texts = texts)
+    
+
+
+    chain = load_summarize_chain(llm, chain_type="map_reduce", verbose=True)
+    chain.run(texts)
+
+
     # Probably have to also chunk the transcripts and create sub summaries
     # Paste summaries together
     # Try to answer your inital query
 
-    return transcripts
+    
 
 
    
@@ -108,4 +132,4 @@ def measure_len_tool():
         description="Use when you need to measure the length of the query",
     )
 
-print(yt_search("I want to create an authentic but simple pasta bolognese recipe"))
+print(yt_search("I want to understand the Mount Hall problem"))
