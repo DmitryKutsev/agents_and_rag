@@ -2,13 +2,14 @@ from operator import itemgetter
 from collections import deque
 from typing import Dict, List
 
+from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from langchain.agents import AgentExecutor
+from langchain.agents import AgentExecutor, Tool
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 
-from agents.react.tools import  measure_len_tool, job_description_search_tool, sql_llm_search_tool
+from tools import  measure_len_tool, job_description_search_tool, sql_llm_search_tool
 
 import os
 
@@ -16,7 +17,7 @@ import os
 def get_execution_agent():
     model = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.0, verbose=True)
 
-    execution_tool_list = [measure_len_tool(), sql_llm_search_tool(), job_description_search_tool()]
+    execution_tool_list = [measure_len_tool()]
 
     template = """You are an AI who performs one task based on the following objective: {objective}.
     Take into account these previously completed tasks: {context}.
@@ -34,7 +35,7 @@ def get_execution_agent():
         | model 
         | StrOutputParser()
     )
-    return AgentExecutor(agent=agent, tools=execution_tool_list, verbose=True)
+    return agent
 
 def get_task_creation_chain():
     """Chain that creates new tasks that do not overlap with incompleted tasts. Given an
@@ -164,5 +165,11 @@ class BabyAGI():
                 break
 
 if __name__ == "__main__":
+    exec_agent = get_execution_agent()
+    result = exec_agent.invoke(
+            {"objective": "Find jobs for an AI expert.",
+            "context": " ",
+            "task": "Find jobs."}
+    )
     babyagent = BabyAGI("Find jobs for an AI Expert.", "Find jobs.")
     result = babyagent.run(3)
