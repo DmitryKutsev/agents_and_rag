@@ -10,11 +10,6 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
 
 
-# https://pypi.org/project/youtube-transcript-api/
-# transcript = YouTubeTranscriptApi.get_transcript(youtube_ids[1], languages=['en'])
-# transcript_list = YouTubeTranscriptApi.list_transcripts(youtube_ids[4])
-# transcript = transcript_list.find_manually_created_transcript(['en'])
-# print(transcript.fetch())
 
 llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.0)
 
@@ -33,13 +28,6 @@ final_answer_prompt = PromptTemplate(
 
 
 create_final_answer = LLMChain(llm=llm, prompt=final_answer_prompt)
-# Map
-map_template = """The following is a set of documents
-{docs}
-Based on this list of docs, please identify the main themes 
-Helpful Answer:"""
-map_prompt = PromptTemplate.from_template(map_template)
-map_chain = LLMChain(llm=llm, prompt=map_prompt)
 
 def get_youtube_video_ids(query: str, max_results: int) -> list:
     """
@@ -52,6 +40,7 @@ def get_youtube_video_ids(query: str, max_results: int) -> list:
     Returns:
     list: List of video IDs.
     """
+    
     load_dotenv()
     api_key = os.environ.get('yt_api_key')
 
@@ -98,12 +87,18 @@ def fetch_transcript(video_id: str, lang_code: str) -> str:
         print(f"Error fetching transcript in language {lang_code} for video {video_id}: {str(e)}")
         return ''
 
-def chunk_documents (text: str):
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=100)
+def chunk_documents (text: str, chunk_size: int, chunk_overlap: int):
+    """ 
+        Get the transcript of a YouTube video in the desired language.
+
+    Args:
+    video_id (str): The ID of the YouTube video.
+    lang_code (str): Desired language code for the transcript.
+
+    Returns:
+    str: The transcript of the video in the specified language.
+    """
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
     list_of_texts = text_splitter.split_text(text)
     return [Document(page_content = x, metadata= {"type": "test"}) for x in list_of_texts]
 
-    
-
-# doc = Document(page_content= "Hello my name is Selim Berntsen, I am from Nijmegen", metadata= {"type": "test"})
-# print(doc.page_content)

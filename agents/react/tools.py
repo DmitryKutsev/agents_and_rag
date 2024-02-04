@@ -22,11 +22,9 @@ def yt_search(query: str, n: int) -> str:
 
     #Power llm to create effective search terms
     yt_query = YT_create_search_terms_chain.run(query)
-    print(yt_query)
 
     # get top n results from youtube API
     youtube_ids = get_youtube_video_ids(yt_query, n) 
-    print(youtube_ids)
 
     # Store all transcripts in a list
     transcripts = [fetch_transcript(id, 'en') for id in youtube_ids]
@@ -36,7 +34,7 @@ def yt_search(query: str, n: int) -> str:
     for num, transcript in enumerate(transcripts):
         title_and_transcript = f"\nVIDEO {num + 1}:\n {transcript}" 
         if isinstance(transcript, str):
-            tanscript_list = chunk_documents(title_and_transcript)
+            tanscript_list = chunk_documents(title_and_transcript, 2000, 100)
             texts.extend(tanscript_list)
 
     # Run summarizaton chain
@@ -50,11 +48,11 @@ def yt_search(query: str, n: int) -> str:
 
 
 def yt_search_tool():
-    """Tool to perform SQL searches on the company dataset."""
+    """Tool to answer questions based on youtube transcripts"""
     return Tool(
-        name="Beginner Youtube search",
+        name="Youtube search chain",
         func=yt_search,
-        description="Translate question into relevant youtube search quey"
+        description="Tool to answer questions based on youtube transcripts"
     )
 
 def sql_search(query: str) -> str:
