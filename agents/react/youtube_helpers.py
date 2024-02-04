@@ -25,6 +25,14 @@ search_terms_prompt = PromptTemplate(
 
 YT_create_search_terms_chain = LLMChain(llm=llm, prompt=search_terms_prompt)
 
+final_answer_prompt = PromptTemplate(
+     input_variables=["chain_output", "query"],
+     template="""Use the following information from these youtube transcript summaries:
+     \n\n {chain_output} \n To give answer to the following question: {query}"""
+ )
+
+
+create_final_answer = LLMChain(llm=llm, prompt=final_answer_prompt)
 # Map
 map_template = """The following is a set of documents
 {docs}
@@ -90,11 +98,10 @@ def fetch_transcript(video_id: str, lang_code: str) -> str:
         print(f"Error fetching transcript in language {lang_code} for video {video_id}: {str(e)}")
         return ''
 
-def chunk_documents (text: str) -> list:
-    # doc= Document(page_content=text, metadata= {"type": "test"})
-    #result = doc.load()
+def chunk_documents (text: str):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=100)
-    return text_splitter.split_text(text)
+    list_of_texts = text_splitter.split_text(text)
+    return [Document(page_content = x, metadata= {"type": "test"}) for x in list_of_texts]
 
     
 

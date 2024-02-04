@@ -5,56 +5,49 @@ from langchain.chains import create_sql_query_chain
 from langchain.chains.summarize import load_summarize_chain
 #from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain_openai import OpenAIEmbeddings
-from langchain.document_loaders import YoutubeLoader
 from langchain.vectorstores import FAISS
 import sqlite3
 import json
-from langchain.docstore.document import Document
-from langchain.text_splitter import CharacterTextSplitter, RecursiveCharacterTextSplitter
-from youtube_helpers import get_youtube_video_ids, fetch_transcript, chunk_documents, llm, YT_create_search_terms_chain
+from youtube_helpers import get_youtube_video_ids, fetch_transcript, chunk_documents, llm, YT_create_search_terms_chain, create_final_answer
 
-def yt_search(query: str) -> str:
-    """Get access to the proper youtube transcript
-    Logic to implement: Create a method to do a API call and fetch the result"""
+def yt_search(query: str, n: int) -> str:
+    """Fetch youtube transcripts via youtube api and use this as input for llm chain
+    Args:
+    query (str): The question to be answered.
+    n (int): Number of YouTube videos to process.
+
+    Returns:
+    answer (str): Answer to your question
+    """
 
     #Power llm to create effective search terms
     yt_query = YT_create_search_terms_chain.run(query)
+    print(yt_query)
 
-    # get top 5 results from youtube
-    youtube_ids = get_youtube_video_ids(yt_query, 5) 
+    # get top n results from youtube API
+    youtube_ids = get_youtube_video_ids(yt_query, n) 
+    print(youtube_ids)
 
-    # Store all 5 transcripts in a list
+    # Store all transcripts in a list
     transcripts = [fetch_transcript(id, 'en') for id in youtube_ids]
     texts = []
-    # Loop over transcripts and create summary based on initial query
     
-    for transcript in transcripts:
-        #title = Document(page_content=f"\nVIDEO {num + 1}:\n", metadata= {"type": "test"})
-        # print(transcript)
-        #print("\n\nBIG STOP\n\n")
-        #tanscript_list = chunk_documents(transcript)
-        #print(len(tanscript_list))
-        #texts.extend(title)
-        texts.extend(transcript)
+    # Loop over transcripts and chunk the data to document format
+    for num, transcript in enumerate(transcripts):
+        title_and_transcript = f"\nVIDEO {num + 1}:\n {transcript}" 
+        if isinstance(transcript, str):
+            tanscript_list = chunk_documents(title_and_transcript)
+            texts.extend(tanscript_list)
+
+    # Run summarizaton chain
+    summarize_chain = load_summarize_chain(llm, chain_type="map_reduce", verbose=True)
+    summary = summarize_chain.run(texts)
+
+    # Answer the initial query based on summary of transcripts
+    answer = create_final_answer.run({"chain_output": summary, "query": query}) 
     
+    return answer
 
-    doc_creator = RecursiveCharacterTextSplitter(chunk_size = 2000, chunk_overlap = 100)
-    document = doc_creator.create_documents(texts = texts)
-    
-
-
-    chain = load_summarize_chain(llm, chain_type="map_reduce", verbose=True)
-    chain.run(texts)
-
-
-    # Probably have to also chunk the transcripts and create sub summaries
-    # Paste summaries together
-    # Try to answer your inital query
-
-    
-
-
-   
 
 def yt_search_tool():
     """Tool to perform SQL searches on the company dataset."""
@@ -132,4 +125,4 @@ def measure_len_tool():
         description="Use when you need to measure the length of the query",
     )
 
-print(yt_search("I want to understand the Mount Hall problem"))
+print(yt_search("What was the score of the most recent Ajax - PSV and who were the goal scorers?", 7))
