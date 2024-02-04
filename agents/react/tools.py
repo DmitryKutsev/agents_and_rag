@@ -125,4 +125,3 @@ def measure_len_tool():
         description="Use when you need to measure the length of the query",
     )
 
-print(yt_search("What was the score of the most recent Ajax - PSV and who were the goal scorers?", 7))
