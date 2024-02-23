@@ -2,11 +2,58 @@ from langchain.agents import Tool
 from langchain_openai import ChatOpenAI
 from langchain_community.utilities import SQLDatabase
 from langchain.chains import create_sql_query_chain
+from langchain.chains.summarize import load_summarize_chain
 #from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain_openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 import sqlite3
 import json
+from youtube_helpers import get_youtube_video_ids, fetch_transcript, chunk_documents, llm, YT_create_search_terms_chain, create_final_answer
+
+def yt_search(query: str, n: int) -> str:
+    """Fetch youtube transcripts via youtube api and use this as input for llm chain
+    Args:
+    query (str): The question to be answered.
+    n (int): Number of YouTube videos to process.
+
+    Returns:
+    answer (str): Answer to your question
+    """
+
+    #Power llm to create effective search terms
+    yt_query = YT_create_search_terms_chain.run(query)
+
+    # get top n results from youtube API
+    youtube_ids = get_youtube_video_ids(yt_query, n) 
+
+    # Store all transcripts in a list
+    transcripts = [fetch_transcript(id, 'en') for id in youtube_ids]
+    texts = []
+    
+    # Loop over transcripts and chunk the data to document format
+    for num, transcript in enumerate(transcripts):
+        title_and_transcript = f"\nVIDEO {num + 1}:\n {transcript}" 
+        if isinstance(transcript, str):
+            tanscript_list = chunk_documents(title_and_transcript, 2000, 100)
+            texts.extend(tanscript_list)
+
+    # Run summarizaton chain
+    summarize_chain = load_summarize_chain(llm, chain_type="map_reduce", verbose=True)
+    summary = summarize_chain.run(texts)
+
+    # Answer the initial query based on summary of transcripts
+    answer = create_final_answer.run({"chain_output": summary, "query": query}) 
+    
+    return answer
+
+
+def yt_search_tool():
+    """Tool to answer questions based on youtube transcripts"""
+    return Tool(
+        name="Youtube search chain",
+        func=yt_search,
+        description="Tool to answer questions based on youtube transcripts"
+    )
 
 def sql_search(query: str) -> str:
     """Search in the company database using natural language that is converted to an sql query by an llm"""
@@ -75,3 +122,4 @@ def measure_len_tool():
         func=measure_len,
         description="Use when you need to measure the length of the query",
     )
+

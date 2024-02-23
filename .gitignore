@@ -127,6 +127,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+hackaton_ragas/
 
 # Spyder project settings
 .spyderproject
