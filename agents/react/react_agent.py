@@ -13,7 +13,7 @@ from langchain.agents import AgentType, Tool, initialize_agent
 
 from react.tools import *
 
-class myChatGPTReactAgent():
+class ReactAgent():
     """
     Class for customizing the React Agent.
     """
@@ -55,15 +55,15 @@ class myChatGPTReactAgent():
         return result
 
 def get_react_agent():
-    agent = myChatGPTReactAgent()
-    tools = [measure_len_tool(), sql_search_tool(), job_description_search_tool()]
+    agent = ReactAgent()
+    tools = [sql_search_tool(), job_description_search_tool()]
     agent.init_agent(tools)
     return agent
     
 if __name__ == "__main__":
-    load_dotenv()
+    load_dotenv(override=True)
     agent = get_react_agent()
-    
+
     #result = agent.run_agent("What is the len of this query?")
     #result = agent.run_agent("How many companies are there in the databse?")
     result = agent.run_agent("Find me a candidates with a job description that mentions AI.")

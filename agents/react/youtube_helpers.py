@@ -9,8 +9,7 @@ from langchain.chains import MapReduceDocumentsChain, ReduceDocumentsChain
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
 
-
-
+load_dotenv(override=True)
 llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.0)
 
 search_terms_prompt = PromptTemplate(
@@ -26,7 +25,6 @@ final_answer_prompt = PromptTemplate(
      \n\n {chain_output} \n To give answer to the following question: {query}"""
  )
 
-
 create_final_answer = LLMChain(llm=llm, prompt=final_answer_prompt)
 
 def get_youtube_video_ids(query: str, max_results: int) -> list:
@@ -40,8 +38,7 @@ def get_youtube_video_ids(query: str, max_results: int) -> list:
     Returns:
     list: List of video IDs.
     """
-    
-    load_dotenv()
+
     api_key = os.environ.get('yt_api_key')
 
     base_url = 'https://www.googleapis.com/youtube/v3/'
@@ -52,7 +49,6 @@ def get_youtube_video_ids(query: str, max_results: int) -> list:
     items = data.get('items', [])
     
     return [item['id']['videoId'] for item in items]
-
 
 
 def fetch_transcript(video_id: str, lang_code: str) -> str:
