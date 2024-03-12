@@ -1,6 +1,6 @@
 import streamlit as st
 from dotenv import load_dotenv
-from react.react_agent import get_react_agent
+from agents.agents import get_agent
 
 def extract_tool_info(process_data):
     # Initialize the result dictionary
@@ -25,7 +25,7 @@ def extract_tool_info(process_data):
     return result
 
 load_dotenv(override=True)
-agent = get_react_agent()
+agent = get_agent(agent_type="openai")
 
 # Page title
 title = "Compare agents"
@@ -33,13 +33,12 @@ st.set_page_config(page_title=title)
 st.title(title)
 
 with st.form('query_form', clear_on_submit=False):
-    query_text = st.text_input('Enter your question:', placeholder='Type your query here...', key='query_text')
+    query_text = st.text_input(label='Enter your question:', placeholder='What is the average authorized capital of the companies in our database?', key='query_text')
     submitted = st.form_submit_button('Submit')
 
 if submitted and query_text:
     with st.spinner('Processing your query...'):
         response = agent.run_agent(query_text)
-        print(response['intermediate_steps'])
         
         # Display the response output
         st.write(response['output'])
@@ -49,6 +48,5 @@ if submitted and query_text:
         st.subheader("Process Steps:")
         for step in steps['steps']:
             with st.expander(f"Step {step['step']}: Tool - {step['tool']}, Input - {step['tool_input']}", expanded=False):
-                st.text("Log:")
-                st.text_area("", step['log'], key=f"log_{step['step']}")
+                st.text_area("Log:", step['log'], key=f"log_{step['step']}")
                 st.text_area("Observation:", step['observation'], key=f"observation_{step['step']}")

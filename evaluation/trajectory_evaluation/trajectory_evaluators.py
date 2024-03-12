@@ -2,16 +2,12 @@ from typing import Any, Optional, Sequence, Tuple
 
 from langchain.chains import LLMChain
 from langchain.evaluation import AgentTrajectoryEvaluator
-from langchain.evaluation import load_evaluator
 from langchain.schema import AgentAction
 from langchain_openai import ChatOpenAI
 
-class HelpfulnessEvaluator(AgentTrajectoryEvaluator):
-    """The default trajectory evaluator that returns whether the result is helpful, and thus achieved it's goal."""
-
+class BaseTrajectoryEvaluator(AgentTrajectoryEvaluator):
     def __init__(self) -> None:
-        llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.0)
-        self.evaluator = load_evaluator("trajectory", llm=llm)
+        self.llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.0)
 
     def _evaluate_agent_trajectory(
         self,
@@ -22,23 +18,56 @@ class HelpfulnessEvaluator(AgentTrajectoryEvaluator):
         reference: Optional[str] = None,
         **kwargs: Any,
     ) -> dict:
+        vals = [
+            f"{i}: Action=[{action.tool}] returned observation = [{observation}]"
+            for i, (action, observation) in enumerate(agent_trajectory)
+        ]
+        trajectory = "\n".join(vals)
+        response = self.chain.run(dict(trajectory=trajectory, input=input), **kwargs)
 
-        evaluation_result = self.evaluator.evaluate_agent_trajectory(
-            prediction=prediction, 
-            input=input, 
-            agent_trajectory=agent_trajectory, 
-            reference=reference, 
-            **kwargs
-        )
+        decision = response.split("\n")[-1].strip()
+        score = 1 if "Y" in decision else 0
+        return {"score": score, "value": decision, "reasoning": response}
 
-        return evaluation_result
+class HelpfulnessEvaluator(BaseTrajectoryEvaluator):
+    """A custom trajectory evaluator that evaluates the helpfulness of a predicted string."""
 
+    def __init__(self) -> None:
+        super().__init__()
+        template = """
+        Assess the helpfulness of the final answer to {input}.
 
-class StepNecessityEvaluator(AgentTrajectoryEvaluator):
+        DATA
+        ------
+        Steps: {trajectory}
+        ------
+
+        i. Does the final answer directly address the question asked?
+        [Determine if the final answer specifically responds to the initial query, providing a clear and direct response.]
+
+        ii. Is the logic of the answer sound, based on the steps taken?
+        [Evaluate the logical progression of the steps taken to arrive at the final answer, ensuring each step contributes to the logic and understanding.]
+
+        iii. Were any crucial steps overlooked that might affect the answer's completeness or accuracy?
+        [Identify if any necessary steps were missed that could lead to a more comprehensive or accurate answer.]
+
+        iv. Does the final answer provide clarity and insight into the question?
+        [Assess whether the answer enhances understanding of the topic and offers valuable insights.]
+
+        v. Could the answer have been improved by altering or adding steps in the trajectory?
+        [Consider if modifications to the steps taken could have led to a more effective or informative answer.]
+
+        Verdict:
+        [Summarize the evaluation with a 'Y' for yes if the final answer is helpful, addressing the question logically and thoroughly, or 'N' for no if it fails to do so.]
+        """
+        
+        self.chain = LLMChain.from_string(self.llm, template)
+
+class StepNecessityEvaluator(BaseTrajectoryEvaluator):
     """A custom trajectory evaluator that evaluates the perplexity of a predicted string."""
 
     def __init__(self) -> None:
-        llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.0)
+        super().__init__()
         template = """Evaluate the necessity of each step taken in responding to {input}.
 
         DATA
@@ -65,34 +94,14 @@ class StepNecessityEvaluator(AgentTrajectoryEvaluator):
         [Summarize the evaluation on a new line with a 'Y' for yes if every step was necessary, or 'N' for no if any step was unnecessary or redundant.]
         """
         
-        self.chain = LLMChain.from_string(llm, template)
-
-    def _evaluate_agent_trajectory(
-        self,
-        *,
-        prediction: str,
-        input: str,
-        agent_trajectory: Sequence[Tuple[AgentAction, str]],
-        reference: Optional[str] = None,
-        **kwargs: Any,
-    ) -> dict:
-        vals = [
-            f"{i}: Action=[{action.tool}] returned observation = [{observation}]"
-            for i, (action, observation) in enumerate(agent_trajectory)
-        ]
-        trajectory = "\n".join(vals)
-        response = self.chain.run(dict(trajectory=trajectory, input=input), **kwargs)
-
-        decision = response.split("\n")[-1].strip()
-        score = 1 if decision == "Y" else 0
-        return {"score": score, "value": decision, "reasoning": response}
+        self.chain = LLMChain.from_string(self.llm, template)
     
 
-class ToolSelectionEvaluator(AgentTrajectoryEvaluator):
+class ToolSelectionEvaluator(BaseTrajectoryEvaluator):
     """A custom trajectory evaluator that evaluates whether the selected tool at any step was not beneficial in answering the input."""
 
     def __init__(self) -> None:
-        llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.0) 
+        super().__init__()
         template = """Assess each step to determine if a non-beneficial tool was selected in answering {input} step by step.
 
         DATA
@@ -118,25 +127,6 @@ class ToolSelectionEvaluator(AgentTrajectoryEvaluator):
         Verdict:
         [Summarize the evaluation on a new line with a 'Y' for yes if the right tools were selected at each step, or 'N' for no if any step included a non-beneficial or less suitable tool.]
         """
-        self.chain = LLMChain.from_string(llm, template)
+        self.chain = LLMChain.from_string(self.llm, template)
 
-    def _evaluate_agent_trajectory(
-        self,
-        *,
-        prediction: str,
-        input: str,
-        agent_trajectory: Sequence[Tuple[AgentAction, str]],
-        reference: Optional[str] = None,
-        **kwargs: Any,
-    ) -> dict:
-        vals = [
-            f"{i}: Action=[{action.tool}] returned observation = [{observation}]"
-            for i, (action, observation) in enumerate(agent_trajectory)
-        ]
-        trajectory = "\n".join(vals)
-        response = self.chain.run(dict(trajectory=trajectory, input=input), **kwargs)
-        
-        decision = response.split("\n")[-1].strip()
-        score = 1 if decision == "Y" else 0
-        return {"score": score, "value": decision, "reasoning": response}
-    
+   

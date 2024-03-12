@@ -10,7 +10,7 @@ from langchain_openai import ChatOpenAI
 from langchain.chains import LLMChain
 from langchain.chains.summarize import load_summarize_chain
 import json
-from react.youtube_helpers import get_youtube_video_ids, fetch_transcript, chunk_documents
+from .youtube_helpers import get_youtube_video_ids, fetch_transcript, chunk_documents
 
 def sql_search(query: str) -> str:
     """Search in the company database using natural language that is converted to an sql query by an llm"""
@@ -101,9 +101,34 @@ def measure_len(query: str) -> str:
 def measure_len_tool():
     """Tool to measure the length of a query."""
     return Tool(
-        name="Measure length of query",
+        name="Measure length of text",
         func=measure_len,
-        description="Use when you need to measure the length of the query",
+        description=
+        """
+        The "Measure length of text" is a specialized utility designed exclusively for calculating the length of text inputs provided to it. Its singular function is to accurately determine the number of characters, including letters, numbers, spaces, and punctuation marks, in any given piece of text. This tool is particularly tailored for instances where the language model (LLM) needs to precisely assess the length of its outputs or any specific text segments.
+
+        Primary Function:
+
+        Exact Length Calculation: It measures the total character count of the submitted text, providing a precise figure that encompasses all elements of the text.
+        Intended Use:
+
+        Specific for Length Assessments: This tool should be employed solely when there is a clear necessity to know the exact length of a text. It is useful in contexts where character limits are critical, such as composing tweets, text messages, or any other content with strict length constraints.
+        Limitations:
+
+        Single Capability: The tool does not offer any functionality beyond counting the characters of the provided text.
+        When to Use (and Not Use) the Tool:
+
+        Appropriate Uses:
+        Determining if a generated response meets specific character limits for social media posts.
+        Ensuring that messages conform to SMS length restrictions to avoid segmentation.
+        
+        Inappropriate Uses:
+        Attempting to gauge the readability or quality of a text.
+        Seeking insights into the frequency of specific words or phrases within the text.
+        Rounding off character counts to fit within a specific limit.
+
+        The "Text Length Measurement Tool" serves a focused and essential purpose: to measure text length accurately. It is a vital resource for scenarios where understanding the exact size of text is crucial, particularly in adhering to character limits. However, its utility is confined to this singular function, and it should not be employed for any form of textual analysis or interpretation. Its deployment should be limited to contexts where the LLM explicitly requires knowledge of text length, ensuring its use is both relevant and necessary.
+        """
     )
 
 def yt_search(query: str, n: int) -> str:
