@@ -1,31 +1,8 @@
 import os
 import requests
 from youtube_transcript_api import YouTubeTranscriptApi
-from dotenv import load_dotenv
-from langchain.prompts import PromptTemplate
-from langchain_openai import ChatOpenAI
-from langchain.chains import LLMChain
-from langchain.chains import MapReduceDocumentsChain, ReduceDocumentsChain
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
-
-load_dotenv(override=True)
-llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.0)
-
-search_terms_prompt = PromptTemplate(
-     input_variables=["text_input"],
-     template="I want you to give me a single good youtube search query based on the following prompt:\n\n {text_input}"
- )
-
-YT_create_search_terms_chain = LLMChain(llm=llm, prompt=search_terms_prompt)
-
-final_answer_prompt = PromptTemplate(
-     input_variables=["chain_output", "query"],
-     template="""Use the following information from these youtube transcript summaries:
-     \n\n {chain_output} \n To give answer to the following question: {query}"""
- )
-
-create_final_answer = LLMChain(llm=llm, prompt=final_answer_prompt)
 
 def get_youtube_video_ids(query: str, max_results: int) -> list:
     """

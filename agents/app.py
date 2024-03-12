@@ -12,17 +12,15 @@ def extract_tool_info(process_data):
     intermediate_steps = process_data.get('intermediate_steps', [])
 
     # Iterate through each step
-    for step_number, (action, _) in enumerate(intermediate_steps, start=1):
+    for step_number, (action, observation) in enumerate(intermediate_steps, start=1):
         step_info = {
             'step': step_number,
             'tool': action.tool,
             'tool_input': action.tool_input,
-            'log': action.log.split('\n')[0]
+            'log': action.log.split('\n')[0],
+            'observation': observation
         }
         result['steps'].append(step_info)
-
-        print(action)
-        print()
 
     return result
 
@@ -41,6 +39,7 @@ with st.form('query_form', clear_on_submit=False):
 if submitted and query_text:
     with st.spinner('Processing your query...'):
         response = agent.run_agent(query_text)
+        print(response['intermediate_steps'])
         
         # Display the response output
         st.write(response['output'])
@@ -51,4 +50,5 @@ if submitted and query_text:
         for step in steps['steps']:
             with st.expander(f"Step {step['step']}: Tool - {step['tool']}, Input - {step['tool_input']}", expanded=False):
                 st.text("Log:")
-                st.text_area("", step['log'], height=150, key=f"log_{step['step']}")
+                st.text_area("", step['log'], key=f"log_{step['step']}")
+                st.text_area("Observation:", step['observation'], key=f"observation_{step['step']}")

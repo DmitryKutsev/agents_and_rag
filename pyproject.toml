@@ -15,6 +15,7 @@ dependencies = [
     "loguru>=0.7.2",
     "youtube-transcript-api>=0.6.2",
     "streamlit>=1.32.0",
+    "langchainhub>=0.1.15",
 ]
 requires-python = "==3.10.*"
 readme = "README.md"

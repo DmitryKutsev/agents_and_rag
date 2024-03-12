@@ -5,7 +5,7 @@
 groups = ["default"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.1"
-content_hash = "sha256:2fcc6800bf38473686e90ac08cfa2bbe4422f52dd911c7b9e829a2b9aff3175a"
+content_hash = "sha256:238dda1fe99a9ee5d2e0f165a57a321c9585c0bb2875fe050ffee3f36ce74cf3"
 
 [[package]]
 name = "aiohttp"
@@ -725,6 +725,21 @@ dependencies = [
 files = [
     {file = "langchain_core-0.1.12-py3-none-any.whl", hash = "sha256:d11c6262f7a9deff7de8fdf14498b8a951020dfed3a80f2358ab731ad04abef0"},
     {file = "langchain_core-0.1.12.tar.gz", hash = "sha256:f18e9300e9a07589b3e280e51befbc5a4513f535949406e55eb7a2dc40c3ce66"},
+]
+
+[[package]]
+name = "langchainhub"
+version = "0.1.15"
+requires_python = ">=3.8.1,<4.0"
+summary = "The LangChain Hub API client"
+groups = ["default"]
+dependencies = [
+    "requests<3,>=2",
+    "types-requests<3.0.0.0,>=2.31.0.2",
+]
+files = [
+    {file = "langchainhub-0.1.15-py3-none-any.whl", hash = "sha256:89a0951abd1db255e91c6d545d092a598fc255aa865d1ffc3ce8f93bbeae60e7"},
+    {file = "langchainhub-0.1.15.tar.gz", hash = "sha256:fa3ff81a31946860f84c119f1e2f6b7c7707e2bd7ed2394a7313b286d59f3bda"},
 ]
 
 [[package]]
@@ -1644,6 +1659,20 @@ groups = ["default"]
 files = [
     {file = "traitlets-5.14.1-py3-none-any.whl", hash = "sha256:2e5a030e6eff91737c643231bfcf04a65b0132078dad75e4936700b213652e74"},
     {file = "traitlets-5.14.1.tar.gz", hash = "sha256:8585105b371a04b8316a43d5ce29c098575c2e477850b62b848b964f1444527e"},
+]
+
+[[package]]
+name = "types-requests"
+version = "2.31.0.20240311"
+requires_python = ">=3.8"
+summary = "Typing stubs for requests"
+groups = ["default"]
+dependencies = [
+    "urllib3>=2",
+]
+files = [
+    {file = "types-requests-2.31.0.20240311.tar.gz", hash = "sha256:b1c1b66abfb7fa79aae09097a811c4aa97130eb8831c60e47aee4ca344731ca5"},
+    {file = "types_requests-2.31.0.20240311-py3-none-any.whl", hash = "sha256:47872893d65a38e282ee9f277a4ee50d1b28bd592040df7d1fdaffdf3779937d"},
 ]
 
 [[package]]
