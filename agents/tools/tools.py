@@ -26,25 +26,24 @@ def sql_search(query: str) -> str:
 def sql_search_tool():
     """Tool to perform SQL searches on the company dataset."""
     return Tool(
-        name="Company dataset SQL search",
+        name="company_sql_search",
         func=sql_search,
         description=
         """
-            This tool is designed to enable in-depth searches and analyses of comprehensive company data. It offers access to a wide array of information that includes:
+        This tool offers detailed company data for advanced searches and analysis. Features include:
 
-            Unique Identifiers and Names: Each company is cataloged with a unique identification number and name, ensuring precise identification within the database.
-            Operational Status: The tool provides the current operational status of companies, indicating whether they are active, inactive, or undergoing processes like liquidation.
-            Classification Details: Companies are classified based on their size and operation type, with detailed information on the company's class, category, and sub-category, giving insights into the scale and sector of operation.
-            Incorporation Information: It includes the date and state of registration, offering insights into the company's inception and geographic jurisdiction.
-            Capitalization Figures: Detailed capital information, including authorized and paid-up capital, reveals a company's financial capacity and equity structure.
-            Industry and Main Activities: The tool classifies companies by industrial class and details their principal business activities, providing a clear view of the primary market segments they operate in.
-            Contact and Location Data: Registered office addresses and email addresses are available for direct contact and geographic pinpointing.
-            Regulatory Oversight: Information regarding the Registrar of Companies overseeing each entity helps users understand the regulatory environment the company operates within.
-            Financial Health: Access to the latest annual returns and financial statements offers insights into a company's financial performance and condition.
+        - Unique Identifiers and Names for precise identification.
+        - Operational Status to check if companies are active or not.
+        - Classification Details for size, sector, and type insights.
+        - Incorporation Information with registration dates and places.
+        - Capitalization Figures for financial capacity and structure.
+        - Industry and Main Activities for understanding market segments.
+        - Contact and Location Data for direct communication.
+        - Regulatory Oversight to comprehend regulatory contexts.
+        - Financial Health from annual returns and financial statements.
 
-            It is important to add relevant information to the query to get the best results. For example, "Show me all companies in the technology sector" or "Show me all companies with a capitalization of over 1 million dollars" or "What is the average capitalization of companies in the technology sector?" or "How many companies have been incorporated in the last 5 years?".
-            If the result is a number, round it to 2 decimal places.
-        """ 
+        Tailor your query, like "Give average market capitalization. Round to answer.". State to round numbers to two decimal places and specify if seeking an average or a similar calculation.
+        """
     )
 
 def job_description_search(query: str) -> str:
@@ -66,32 +65,30 @@ def job_description_search_tool():
     A resourceful tool for accessing a comprehensive collection of job descriptions. This tool is particularly useful for queries related to job roles, titles, functions, and detailed descriptions of various positions across industries. It serves as a valuable reference for understanding job requirements, responsibilities, and qualifications, facilitating in-depth analysis and insights into specific job-related information.
     """
     return Tool(
-        name="Job Description Search",
+        name="job_description_similarity_search",
         func=job_description_search,
         description=
         """
-        The tool, designated as "Job Description Similarity Search," utilizes advanced similarity search techniques to compare a given query against a comprehensive database of job descriptions. Upon receiving a query, the tool promptly identifies and retrieves the top three job descriptions that exhibit the highest similarity scores to the query. This feature is particularly valuable for exploring potential candidates for a role, allowing users to find job descriptions that closely match specific requirements or skill sets.
+        The "Job Description Similarity Search" tool matches queries to similar job descriptions, highlighting the top three. Useful for:
 
-        Use Cases:
+        - Finding job descriptions that meet specific criteria.
+        - Creating job postings by comparing similar roles.
 
-        Ideal for Matching Queries to Job Descriptions: If you're seeking candidates with particular qualifications or experience, this tool can help you find existing job descriptions that closely align with your criteria. This is useful for understanding how similar roles are described in the industry and what qualifications are typically required.
-        Beneficial for Tailoring Job Postings: By inputting the desired attributes of a job posting, you can retrieve examples of how similar positions are articulated, aiding in the creation of your own compelling job descriptions.
         Limitations:
 
-        Not Suited for Aggregate Data Analysis: The tool is not designed to analyze or reason about the entire dataset of job descriptions collectively. For instance, it cannot determine the most common skill required in a specific industry by examining all job descriptions simultaneously.
-        Ineffective for Broad Market Insights: It cannot provide insights into broader market trends, such as the overall demand for certain roles or the prevalence of specific qualifications across industries.
-        Examples of What the Tool Can and Can't Do:
+        - Can't analyze job descriptions collectively or offer broad market trends.
 
-        Can Do:
+        Capabilities:
 
-        Retrieve job descriptions that match a query about specific programming language expertise for a software engineering role.
-        Find job descriptions similar to one that emphasizes leadership in project management for benchmarking.
-        Can't Do:
+        - Finds job descriptions based on skills or qualifications.
+        - Helps benchmark against similar roles.
 
-        Determine the most frequently requested programming language across all job descriptions in the tech industry.
-        Provide an analysis of salary trends for data science roles over the past year.
-        This tool stands out for its ability to directly match queries with similar job descriptions, making it an invaluable asset for targeted searches related to hiring and job posting development. However, it's important to recognize its limitations in aggregate data analysis and broad market insights, ensuring users leverage it within its optimal use case scope.
-        """ 
+        Cannot:
+
+        - Identify common skills or analyze salary trends.
+
+        Effective for targeted job description searches and development, it doesn't support aggregate data analysis or market trends.
+        """
     )
 
 def measure_len(query: str) -> str:
@@ -101,33 +98,26 @@ def measure_len(query: str) -> str:
 def measure_len_tool():
     """Tool to measure the length of a query."""
     return Tool(
-        name="Measure length of text",
+        name="measure_text_length",
         func=measure_len,
         description=
         """
-        The "Measure length of text" is a specialized utility designed exclusively for calculating the length of text inputs provided to it. Its singular function is to accurately determine the number of characters, including letters, numbers, spaces, and punctuation marks, in any given piece of text. This tool is particularly tailored for instances where the language model (LLM) needs to precisely assess the length of its outputs or any specific text segments.
+        The "Measure Length of Text" tool calculates the exact length of text inputs, including characters, spaces, and punctuation, crucial for adhering to character limits in social media or SMS.
 
-        Primary Function:
+        Primary Use:
+        - Accurately measures text length to meet specific constraints.
 
-        Exact Length Calculation: It measures the total character count of the submitted text, providing a precise figure that encompasses all elements of the text.
-        Intended Use:
-
-        Specific for Length Assessments: This tool should be employed solely when there is a clear necessity to know the exact length of a text. It is useful in contexts where character limits are critical, such as composing tweets, text messages, or any other content with strict length constraints.
         Limitations:
-
-        Single Capability: The tool does not offer any functionality beyond counting the characters of the provided text.
-        When to Use (and Not Use) the Tool:
+        - Only counts characters; does not assess text readability, quality, or word frequency.
 
         Appropriate Uses:
-        Determining if a generated response meets specific character limits for social media posts.
-        Ensuring that messages conform to SMS length restrictions to avoid segmentation.
-        
-        Inappropriate Uses:
-        Attempting to gauge the readability or quality of a text.
-        Seeking insights into the frequency of specific words or phrases within the text.
-        Rounding off character counts to fit within a specific limit.
+        - Ensuring content fits within social media or SMS character limits.
 
-        The "Text Length Measurement Tool" serves a focused and essential purpose: to measure text length accurately. It is a vital resource for scenarios where understanding the exact size of text is crucial, particularly in adhering to character limits. However, its utility is confined to this singular function, and it should not be employed for any form of textual analysis or interpretation. Its deployment should be limited to contexts where the LLM explicitly requires knowledge of text length, ensuring its use is both relevant and necessary.
+        Inappropriate Uses:
+        - Gauging text readability or quality.
+        - Analyzing word or phrase frequency.
+
+        This tool is key for precise measurement of text lengths, particularly useful for content with strict character limits. It is not designed for textual analysis or interpretation.
         """
     )
 
@@ -188,7 +178,7 @@ def yt_search(query: str, n: int) -> str:
 def yt_search_tool():
     """Tool to answer questions based on youtube transcripts"""
     return Tool(
-        name="Youtube search chain",
+        name="youtube_search",
         func=yt_search,
         description="Tool to answer questions based on youtube transcripts"
     )
