@@ -23,9 +23,9 @@ class BaseTrajectoryEvaluator(AgentTrajectoryEvaluator):
             for i, (action, observation) in enumerate(agent_trajectory)
         ]
         trajectory = "\n".join(vals)
-        response = self.chain.run(dict(trajectory=trajectory, input=input), **kwargs)
+        response = self.chain.invoke(dict(trajectory=trajectory, input=input), **kwargs)
 
-        decision = response.split("\n")[-1].strip()
+        decision = response["text"].split("\n")[-1].strip()
         score = 1 if "Y" in decision else 0
         return {"score": score, "value": decision, "reasoning": response}
 
@@ -129,4 +129,14 @@ class ToolSelectionEvaluator(BaseTrajectoryEvaluator):
         """
         self.chain = LLMChain.from_string(self.llm, template)
 
-   
+def get_trajectory_evaluator(eval_type: str = "helpfulness"):
+    if eval_type == "helpfulness":
+        evaluator = HelpfulnessEvaluator()
+    elif eval_type == "step_necessity":
+        evaluator = StepNecessityEvaluator()
+    elif eval_type == "tool_selection":
+        evaluator = ToolSelectionEvaluator()
+    else:
+        raise ValueError(f"Invalid trajectory eval type: {eval_type}. Expected 'react' or 'openai'.")
+
+    return evaluator

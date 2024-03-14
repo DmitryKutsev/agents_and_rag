@@ -1,6 +1,7 @@
 import streamlit as st
 from dotenv import load_dotenv
 from agents.agents import get_agent
+from evaluation.trajectory_evaluation.trajectory_evaluators import get_trajectory_evaluator
 
 def extract_tool_info(process_data):
     # Initialize the result dictionary
@@ -43,9 +44,9 @@ agents_mapping = {
 
 # Define the tra
 trajectory_evaluators_mapping = {
-    "Helpfulness": "HelpfulnessEvaluator",
-    "Step Necessity": "StepNecessityEvaluator",
-    "Tool Selection": "ToolSelectionEvaluator",
+    "Helpfulness": get_trajectory_evaluator("helpfulness"),
+    "Step necessity": get_trajectory_evaluator("step_necessity"),
+    "Tool selection": get_trajectory_evaluator("tool_selection"),
     # Add more evaluators here as needed
 }
 
@@ -57,10 +58,10 @@ st.title(title)
 with st.form('query_form', clear_on_submit=False):
     query_text = st.text_input(label='Enter your question:', placeholder='What is the average authorized capital of the companies in our database?', key='query_text')
     agent_selection = st.multiselect('Select agents to compare:', ['ReAct', 'OpenAITools'])
-    
-    submitted = st.form_submit_button('Submit')
+    eval_selection = st.multiselect('Select trajectory evaluations to run:', ['Helpfulness', 'Step necessity', 'Tool selection'])
+    query_submitted = st.form_submit_button('Submit')
 
-if submitted and query_text:
+if query_submitted and query_text and agent_selection:
     with st.spinner('Processing your query...'):
         # Initialize a dictionary to store the responses from each agent
         responses = {}
@@ -68,11 +69,6 @@ if submitted and query_text:
         # Run the selected agents
         for agent in agent_selection:
             responses[agent] = agents_mapping[agent].run_agent(query_text)
-        
-        # Give the user the option to run evaluation metrics
-        with st.form("evaluation_form"):
-            eval_selection = st.multiselect('Select trajectory evaluations to run:', ['Helpfulness', 'Step Necessity', 'Tool Selection'])
-            eval_submitted = st.form_submit_button('Run Evaluations')
         
         # Setup columns for side by side display
         cols = st.columns(len(agent_selection))
@@ -90,10 +86,32 @@ if submitted and query_text:
                         st.text_area("Log:", step['log'], key=f"{agent}_log_{step['step']}")
                         if 'observation' in step:
                             st.text_area("Observation:", step['observation'], key=f"{agent}_observation_{step['step']}")
-                
-    # If the user has submitted the evaluation form, run the selected evaluations
-    if eval_submitted:
-        raise NotImplementedError("Evaluation metrics are not yet implemented")
+
+        # If the user has submitted the evaluation form, run the selected evaluations
+        if eval_selection:
+            evaluations = {}
+            for j, agent in enumerate(agent_selection):  
+                evaluations[agent] = {}
+                for evaluation in eval_selection:
+                    evaluations[agent][evaluation] = trajectory_evaluators_mapping[evaluation].evaluate_agent_trajectory(
+                        prediction=responses[agent]["output"],
+                        input=responses[agent]["input"],
+                        agent_trajectory=responses[agent]["intermediate_steps"]
+                    )
+                with cols[j]:  
+                    st.subheader(f"{agent} Agent Trajectory Evaluation:")
+                    for evaluation in evaluations[agent]:
+                        st.markdown(f"#### {evaluation}")
+                        score = evaluations[agent][evaluation]["score"]
+                        if score == 1:
+                            st.write("Test passed ✅")
+                        else:
+                            st.write("Test failed ❌")
+                        with st.expander("Reasoning", expanded=False):
+                            st.write(evaluations[agent][evaluation]["reasoning"])
+                            
+  
+
 
 
 

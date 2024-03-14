@@ -6,11 +6,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from agents.agents import get_agent
-from evaluation.trajectory_evaluation.trajectory_evaluators import (
-    HelpfulnessEvaluator,
-    StepNecessityEvaluator,
-    ToolSelectionEvaluator
-)
+from evaluation.trajectory_evaluation.trajectory_evaluators import get_trajectory_evaluator
 from loguru import logger
 from dotenv import load_dotenv
 load_dotenv()
@@ -25,10 +21,10 @@ def agent_result():
 
 def test_helpfulness_evaluation(agent_result):
     # Initialize evaluator
-    helpfulnessEval = HelpfulnessEvaluator()
+    helpfulness_eval = get_trajectory_evaluator("helpfulness")
 
     # Evaluate the agent's response
-    helpfulness_result = helpfulnessEval.evaluate_agent_trajectory(
+    helpfulness_result = helpfulness_eval.evaluate_agent_trajectory(
         prediction=agent_result["output"],
         input=agent_result["input"],
         agent_trajectory=agent_result["intermediate_steps"],
@@ -38,10 +34,10 @@ def test_helpfulness_evaluation(agent_result):
 
 def test_step_necessity_evaluation(agent_result):
     # Initialize evaluator
-    stepNecessityEval = StepNecessityEvaluator()
+    step_necessity_eval = get_trajectory_evaluator("step_necessity")
 
     # Evaluate the agent's response
-    necessity_result = stepNecessityEval.evaluate_agent_trajectory(
+    necessity_result = step_necessity_eval.evaluate_agent_trajectory(
         prediction=agent_result["output"],
         input=agent_result["input"],
         agent_trajectory=agent_result["intermediate_steps"],
@@ -51,10 +47,10 @@ def test_step_necessity_evaluation(agent_result):
 
 def test_tool_selection_evaluation(agent_result):
     # Initialize evaluator
-    toolSelectionEval = ToolSelectionEvaluator()
+    tool_selection_eval = get_trajectory_evaluator("tool_selection")
 
     # Evaluate the agent's response
-    tool_selection_result = toolSelectionEval.evaluate_agent_trajectory(
+    tool_selection_result = tool_selection_eval.evaluate_agent_trajectory(
         prediction=agent_result["output"],
         input=agent_result["input"],
         agent_trajectory=agent_result["intermediate_steps"],

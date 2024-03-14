@@ -51,7 +51,7 @@ class OpenAIToolsAgent(Agent):
         self.agent = AgentExecutor(agent=openai_tools_agent, tools=self.tools_list, return_intermediate_steps=True, verbose=True, handle_parsing_errors=True)
     
 def get_agent(agent_type: str = "react"):
-    tools = [sql_search_tool(), job_description_search_tool(), measure_len_tool()]
+    tools = [sql_search_tool(), job_description_search_tool()]
     
     if agent_type == "react":
         agent = ReactAgent(tools)
