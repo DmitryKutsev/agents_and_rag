@@ -2,48 +2,41 @@ from typing import List
 from langchain_openai import ChatOpenAI
 from langchain.agents import AgentExecutor, create_react_agent, create_openai_tools_agent
 from langchain import hub
+from agents.base_agent import Agent
+from agents.tools.tools import *
 
-from .tools.tools import *
-
-class Agent():
-    """Base class for all agents."""
-    def __init__(self, tools_list: List[Tool] = []):
-        self.tools_list = tools_list
-    
-    def add_tool(self, tool: Tool):
-        self.tools_list.append(tool)
-
+class SingleAgentSystem(Agent):
     def run_agent(self, query: str) -> str:
         """
         Run the agent.
         """
         if not self.agent:
-            raise Exception("""Agent not initialized. Please call init_agent() first.""")
+            raise Exception("Agent not initialized.")
 
         result = self.agent.invoke({"input": query})
 
         return result
 
-class ReactAgent(Agent):
+class ReactAgent(SingleAgentSystem):
     """
     Class for customizing the React Agent.
     """
     
     def __init__(self, tools_list: List[Tool] = []):
-        super().__init__(tools_list)
+        self.tools_list = tools_list
         self.llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.0)
         self.template = hub.pull("hwchase17/react")
         
         react_agent = create_react_agent(self.llm, self.tools_list, self.template)
         self.agent = AgentExecutor(agent=react_agent, tools=self.tools_list, return_intermediate_steps=True, verbose=True, handle_parsing_errors=True)
     
-class OpenAIToolsAgent(Agent):
+class OpenAIToolsAgent(SingleAgentSystem):
     """
     Class for customizing the OpenAI Tools Agent.
     """
     
     def __init__(self, tools_list: List[Tool] = []):
-        super().__init__(tools_list)
+        self.tools_list = tools_list
         self.llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.0)
         self.template = hub.pull("hwchase17/openai-tools-agent")
 

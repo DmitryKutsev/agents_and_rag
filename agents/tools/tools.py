@@ -10,6 +10,7 @@ from langchain_openai import ChatOpenAI
 from langchain.chains import LLMChain
 from langchain.chains.summarize import load_summarize_chain
 import json
+from loguru import logger
 from .youtube_helpers import get_youtube_video_ids, fetch_transcript, chunk_documents
 
 def sql_search(query: str) -> str:
@@ -20,7 +21,7 @@ def sql_search(query: str) -> str:
     con = sqlite3.connect("data/companies.db")
     cursor = con.cursor()
     rows = cursor.execute(result_query).fetchall()
-    print(result_query)
+    logger.info(f"SQL query: {result_query}")
     return json.dumps(rows)
 
 def sql_search_tool():

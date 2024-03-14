@@ -5,7 +5,7 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from agents.agents import get_agent
+from agents.single_agent_systems import get_agent
 from evaluation.trajectory_evaluation.trajectory_evaluators import get_trajectory_evaluator
 from loguru import logger
 from dotenv import load_dotenv
@@ -14,7 +14,7 @@ load_dotenv()
 # Global setup for the agent and its result, used in each test
 @pytest.fixture(scope="module")
 def agent_result():
-    query = "What is the length of this query?"
+    query = "What is the average authorized capital of the companies in our database?"
     agent = get_agent(agent_type='react')
     result = agent.run_agent(query)
     return result

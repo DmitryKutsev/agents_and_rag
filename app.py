@@ -1,6 +1,6 @@
 import streamlit as st
 from dotenv import load_dotenv
-from agents.agents import get_agent
+from agents.agent_factory import agent_system_factory
 from evaluation.trajectory_evaluation.trajectory_evaluators import get_trajectory_evaluator
 
 def extract_tool_info(process_data):
@@ -37,8 +37,9 @@ load_dotenv(override=True)
 
 # Define all available agents
 agents_mapping = {
-    "ReAct": get_agent(agent_type="react"),
-    "OpenAITools": get_agent(agent_type="openai"),
+    "ReAct": agent_system_factory(agent_type="react"),
+    "OpenAITools": agent_system_factory(agent_type="openai"),
+    #"MultiAgentSystem": agent_system_factory(agent_type="multi"),
     # Add more agents here as needed
 }
 
