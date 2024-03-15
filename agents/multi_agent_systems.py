@@ -1,10 +1,11 @@
 
 from langchain.output_parsers.openai_functions import JsonOutputFunctionsParser
 import operator
-from typing import Annotated, Sequence, TypedDict
+from typing import Annotated, Sequence, TypedDict, Tuple
 from langchain.agents import AgentExecutor, create_openai_tools_agent
 from langchain_core.messages import BaseMessage, HumanMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.agents import AgentAction
 from langchain_openai import ChatOpenAI
 from langgraph.graph import StateGraph, END
 from agents.tools.tools import *
@@ -28,12 +29,24 @@ class BaseAgentNode:
             MessagesPlaceholder(variable_name="agent_scratchpad"),
         ])
         agent = create_openai_tools_agent(self.llm, self.tools, prompt)
-        return AgentExecutor(agent=agent, tools=self.tools, handle_parsing_errors=True)
+        return AgentExecutor(agent=agent, tools=self.tools, handle_parsing_errors=True, return_intermediate_steps=True)
 
-    def execute(self, state: Dict[str, Any]) -> Dict[str, Any]:
+    def execute(self, state: Dict[str, Any]):
         result = self.agent.invoke(state)
-        return {"messages": [AIMessage(content=result["output"], name=self.name)]}
 
+        agent_trajectory = [AgentAction(tool=action.tool, tool_input=action.tool_input, log=action.log) for action, _ in result["intermediate_steps"]]
+
+        messages = [
+            AIMessage(
+                content=result["output"], 
+                name=self.name, 
+            )
+        ]
+
+        return {
+            "messages": messages,
+            "agent_trajectory": agent_trajectory,
+            }
 
 class SQLAgentNode(BaseAgentNode):
     def __init__(self, llm: ChatOpenAI, tools: List[Any], system_prompt: str):
@@ -47,6 +60,7 @@ class VSAgentNode(BaseAgentNode):
 class AgentState(TypedDict):
     # The annotation tells the graph that new messages will always be added to the current states
     messages: Annotated[Sequence[BaseMessage], operator.add]
+    agent_trajectory: List[Tuple[AgentAction, str]]
     # The 'next' field indicates where to route to next
     next: str
 
@@ -109,9 +123,58 @@ class AgentGraph(Agent):
         # Change to 'return response['messages'][-1].content' to just return the last message
         return response
 
-    # Overwrites the run_agent method in the Agent class
+    # Implements the run_agent method in the Agent class
     def run_agent(self, query: str) -> str:
         return self.execute_graph(query)
+    
+    # Implement the format_agent_response method in the Agent class
+    def format_agent_response(self, output):
+        """
+        Format the output for a multi-agent system.
+        """
+        
+        # Initialize the result dictionary
+        result = {
+            'output': output['messages'][-1].content,
+            'agent_trajectory': '',
+            'steps': []
+        }
+
+        # Extract agent trajectories
+        agent_trajectories = output.get('agent_trajectory', [])
+        trajectory_steps = []
+
+        # Iterate through each step in the trajectories
+        for step_number, action in enumerate(agent_trajectories, start=1):
+            
+            # Depending on the agent type, the log may be formatted differently
+            try:
+                log = action.log.split('\n')[1]
+            except:
+                log = ""
+
+            step_info = {
+                'step': step_number,
+                'tool': action.tool,
+                'tool_input': action.tool_input,
+                'log': log,
+                'observation': "TODO: figure out how to add the observation/tool output here." # TODO: figure out how to add the observation/tool output here.
+            }
+            result['steps'].append(step_info)
+
+            # Add a formatted string for this step to the trajectory_steps list
+            trajectory_step_str = f"Step {step_number}: Tool=[{action.tool}], Input=[{action.tool_input}], Log=[{log}]"
+            trajectory_steps.append(trajectory_step_str)
+
+        # Iterate through each agent in the response
+        for agent in output['messages']:
+            if isinstance(agent, AIMessage):
+                result['agent_trajectory'] += f"{agent.name} Agent Response:\n{agent.content}\n"
+
+        # Join the trajectory steps into a single string and add it to the result
+        result['agent_trajectory'] += '\n'.join(trajectory_steps)
+
+        return result
 
 def get_mas(mas_type: str = "multi"):
     """I would like to make this into a method that can be used to initialize multiple variants of the MAS."""

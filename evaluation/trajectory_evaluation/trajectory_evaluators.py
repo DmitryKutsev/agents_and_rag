@@ -14,16 +14,11 @@ class BaseTrajectoryEvaluator(AgentTrajectoryEvaluator):
         *,
         prediction: str,
         input: str,
-        agent_trajectory: Sequence[Tuple[AgentAction, str]],
-        reference: Optional[str] = None,
+        agent_trajectory: str,
         **kwargs: Any,
     ) -> dict:
-        vals = [
-            f"{i}: Action=[{action.tool}] returned observation = [{observation}]"
-            for i, (action, observation) in enumerate(agent_trajectory)
-        ]
-        trajectory = "\n".join(vals)
-        response = self.chain.invoke(dict(trajectory=trajectory, input=input), **kwargs)
+
+        response = self.chain.invoke(dict(trajectory=agent_trajectory, input=input, prediction=prediction), **kwargs)
 
         decision = response["text"].split("\n")[-1].strip()
         score = 1 if "Y" in decision else 0
@@ -34,8 +29,10 @@ class HelpfulnessEvaluator(BaseTrajectoryEvaluator):
 
     def __init__(self) -> None:
         super().__init__()
-        template = """
+        template = (
+        """
         Assess the helpfulness of the final answer to {input}.
+        The final answer is {prediction}.
 
         DATA
         ------
@@ -58,8 +55,9 @@ class HelpfulnessEvaluator(BaseTrajectoryEvaluator):
         [Consider if modifications to the steps taken could have led to a more effective or informative answer.]
 
         Verdict:
-        [Summarize the evaluation with a 'Y' for yes if the final answer is helpful, addressing the question logically and thoroughly, or 'N' for no if it fails to do so.]
+        [Summarize the evaluation with a 'Y' for yes if the final answer is helpful, addressing the question logically and thoroughly, or 'N' for no if it fails to do so. Make sure this is the last line of the response.]
         """
+        )
         
         self.chain = LLMChain.from_string(self.llm, template)
 
@@ -68,7 +66,9 @@ class StepNecessityEvaluator(BaseTrajectoryEvaluator):
 
     def __init__(self) -> None:
         super().__init__()
-        template = """Evaluate the necessity of each step taken in responding to {input}.
+        template = (
+        """Evaluate the necessity of each step taken in responding to {input}.
+        The final answer is {prediction}.
 
         DATA
         ------
@@ -91,8 +91,9 @@ class StepNecessityEvaluator(BaseTrajectoryEvaluator):
         [Provide an overall assessment of the efficiency and directness of the steps taken to answer the question.]
 
         Verdict:
-        [Summarize the evaluation on a new line with a 'Y' for yes if every step was necessary, or 'N' for no if any step was unnecessary or redundant.]
+        [Summarize the evaluation on a new line with a 'Y' for yes if every step was necessary, or 'N' for no if any step was unnecessary or redundant. Make sure this is the last line of the response.]
         """
+        )
         
         self.chain = LLMChain.from_string(self.llm, template)
     
@@ -102,7 +103,9 @@ class ToolSelectionEvaluator(BaseTrajectoryEvaluator):
 
     def __init__(self) -> None:
         super().__init__()
-        template = """Assess each step to determine if a non-beneficial tool was selected in answering {input} step by step.
+        template = (
+        """Assess each step to determine if a non-beneficial tool was selected in answering {input} step by step.
+        The final answer is {prediction}.
 
         DATA
         ------
@@ -125,8 +128,9 @@ class ToolSelectionEvaluator(BaseTrajectoryEvaluator):
         [Give a final assessment on the appropriateness of the tool choices.]
 
         Verdict:
-        [Summarize the evaluation on a new line with a 'Y' for yes if the right tools were selected at each step, or 'N' for no if any step included a non-beneficial or less suitable tool.]
+        [Summarize the evaluation on a new line with a 'Y' for yes if the right tools were selected at each step, or 'N' for no if any step included a non-beneficial or less suitable tool. Make sure this is the last line of the response.]
         """
+        )
         self.chain = LLMChain.from_string(self.llm, template)
 
 def get_trajectory_evaluator(eval_type: str = "helpfulness"):

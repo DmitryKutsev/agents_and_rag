@@ -3,43 +3,13 @@ from dotenv import load_dotenv
 from agents.agent_factory import agent_system_factory
 from evaluation.trajectory_evaluation.trajectory_evaluators import get_trajectory_evaluator
 
-def extract_tool_info(process_data):
-    # Initialize the result dictionary
-    result = {
-        'steps': []
-    }
-
-    # Extract intermediate steps
-    intermediate_steps = process_data.get('intermediate_steps', [])
-
-    # Iterate through each step
-    for step_number, (action, observation) in enumerate(intermediate_steps, start=1):
-        
-        # Depending on the agent type, the log may be formatted differently
-        try:
-            split_log = action.log.split('\n')
-            log = split_log[0] if split_log[0] != "" else split_log[1]
-        except:
-            log = ""
-
-        step_info = {
-            'step': step_number,
-            'tool': action.tool,
-            'tool_input': action.tool_input,
-            'log': log,
-            'observation': observation
-        }
-        result['steps'].append(step_info)
-
-    return result
-
 load_dotenv(override=True)
 
 # Define all available agents
 agents_mapping = {
     "ReAct": agent_system_factory(agent_type="react"),
     "OpenAITools": agent_system_factory(agent_type="openai"),
-    #"MultiAgentSystem": agent_system_factory(agent_type="multi"),
+    "MultiAgentSystem": agent_system_factory(agent_type="multi"),
     # Add more agents here as needed
 }
 
@@ -58,7 +28,7 @@ st.title(title)
 
 with st.form('query_form', clear_on_submit=False):
     query_text = st.text_input(label='Enter your question:', placeholder='What is the average authorized capital of the companies in our database?', key='query_text')
-    agent_selection = st.multiselect('Select agents to compare:', ['ReAct', 'OpenAITools'])
+    agent_selection = st.multiselect('Select agents to compare:', ['ReAct', 'OpenAITools', 'MultiAgentSystem'])
     eval_selection = st.multiselect('Select trajectory evaluations to run:', ['Helpfulness', 'Step necessity', 'Tool selection'])
     query_submitted = st.form_submit_button('Submit')
 
@@ -69,20 +39,20 @@ if query_submitted and query_text and agent_selection:
 
         # Run the selected agents
         for agent in agent_selection:
-            responses[agent] = agents_mapping[agent].run_agent(query_text)
-        
+            response = agents_mapping[agent].run_agent(query_text)
+            responses[agent] = agents_mapping[agent].format_agent_response(response)
+
         # Setup columns for side by side display
         cols = st.columns(len(agent_selection))
         
         # Display the response output for each agent
         for i, agent in enumerate(agent_selection):
             with cols[i]:
-                st.subheader(f"{agent} Agent Response:")
+                st.subheader(f"{agent} Response:")
                 st.write(responses[agent]['output'])
                 
-                # Extract and display intermediate steps for each agent
-                steps = extract_tool_info(responses[agent])
-                for step in steps['steps']:
+                # Display intermediate steps for each agent)
+                for step in responses[agent]['steps']:
                     with st.expander(f"Step {step['step']}: Tool - {step['tool']}, Input - {step['tool_input']}", expanded=False):
                         st.text_area("Log:", step['log'], key=f"{agent}_log_{step['step']}")
                         if 'observation' in step:
@@ -96,11 +66,11 @@ if query_submitted and query_text and agent_selection:
                 for evaluation in eval_selection:
                     evaluations[agent][evaluation] = trajectory_evaluators_mapping[evaluation].evaluate_agent_trajectory(
                         prediction=responses[agent]["output"],
-                        input=responses[agent]["input"],
-                        agent_trajectory=responses[agent]["intermediate_steps"]
+                        input=query_text,
+                        agent_trajectory=responses[agent]["agent_trajectory"] 
                     )
                 with cols[j]:  
-                    st.subheader(f"{agent} Agent Trajectory Evaluation:")
+                    st.subheader(f"{agent} Trajectory Evaluation:")
                     for evaluation in evaluations[agent]:
                         st.markdown(f"#### {evaluation}")
                         score = evaluations[agent][evaluation]["score"]
@@ -109,7 +79,7 @@ if query_submitted and query_text and agent_selection:
                         else:
                             st.write("Test failed ❌")
                         with st.expander("Reasoning", expanded=False):
-                            st.write(evaluations[agent][evaluation]["reasoning"])
+                            st.write(evaluations[agent][evaluation]["reasoning"]["text"])
                             
   
 

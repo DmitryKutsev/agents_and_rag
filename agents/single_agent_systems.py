@@ -29,7 +29,50 @@ class ReactAgent(SingleAgentSystem):
         
         react_agent = create_react_agent(self.llm, self.tools_list, self.template)
         self.agent = AgentExecutor(agent=react_agent, tools=self.tools_list, return_intermediate_steps=True, verbose=True, handle_parsing_errors=True)
-    
+
+    def format_agent_response(self, output):
+        """
+        Format the agent's output.
+        """
+        
+        # Initialize the result dictionary
+        result = {
+            'output': output.get('output', ''),
+            'agent_trajectory': '',
+            'steps': []
+        }
+
+        # Extract intermediate steps
+        intermediate_steps = output.get('intermediate_steps', [])
+        trajectory_steps = []
+
+        # Iterate through each step
+        for step_number, (action, observation) in enumerate(intermediate_steps, start=1):
+            
+            # Depending on the agent type, the log may be formatted differently
+            try:
+                log = action.log.split('\n')[0]
+            except:
+                log = ""
+
+            step_info = {
+                'step': step_number,
+                'tool': action.tool,
+                'tool_input': action.tool_input,
+                'log': log,
+                'observation': observation
+            }
+            result['steps'].append(step_info)
+
+            # Add a formatted string for this step to the trajectory_steps list
+            trajectory_step_str = f"Step {step_number}: Tool=[{action.tool}], Input=[{action.tool_input}], Log=[{log}], Observation=[{observation}]"
+            trajectory_steps.append(trajectory_step_str)
+
+        # Join the trajectory steps into a single string and add it to the result
+        result['agent_trajectory'] = '\n'.join(trajectory_steps)
+
+        return result
+
 class OpenAIToolsAgent(SingleAgentSystem):
     """
     Class for customizing the OpenAI Tools Agent.
@@ -42,6 +85,49 @@ class OpenAIToolsAgent(SingleAgentSystem):
 
         openai_tools_agent = create_openai_tools_agent(self.llm, self.tools_list, self.template)
         self.agent = AgentExecutor(agent=openai_tools_agent, tools=self.tools_list, return_intermediate_steps=True, verbose=True, handle_parsing_errors=True)
+
+    def format_agent_response(self, output):
+        """
+        Format the agent's output.
+        """
+        
+        # Initialize the result dictionary
+        result = {
+            'output': output.get('output', ''),
+            'agent_trajectory': '',
+            'steps': []
+        }
+
+        # Extract intermediate steps
+        intermediate_steps = output.get('intermediate_steps', [])
+        trajectory_steps = []
+        
+        # Iterate through each step
+        for step_number, (action, observation) in enumerate(intermediate_steps, start=1):
+            
+            # Depending on the agent type, the log may be formatted differently
+            try:
+                log = action.log.split('\n')[1]
+            except:
+                log = ""
+
+            step_info = {
+                'step': step_number,
+                'tool': action.tool,
+                'tool_input': action.tool_input,
+                'log': log,
+                'observation': observation
+            }
+            result['steps'].append(step_info)
+
+            # Add a formatted string for this step to the trajectory_steps list
+            trajectory_step_str = f"Step {step_number}: Tool=[{action.tool}], Input=[{action.tool_input}], Log=[{log}], Observation=[{observation}]"
+            trajectory_steps.append(trajectory_step_str)
+
+        # Join the trajectory steps into a single string and add it to the result
+        result['agent_trajectory'] = '\n'.join(trajectory_steps)
+
+        return result
     
 def get_agent(agent_type: str = "react"):
     tools = [sql_search_tool(), job_description_search_tool()]
