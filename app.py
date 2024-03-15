@@ -51,6 +51,7 @@ if query_submitted and query_text and agent_selection:
             with cols[i]:
                 st.subheader(f"{agent} Response:")
                 st.write(responses[agent]['output'])
+                st.write(f"Time taken: {responses[agent]['time']:.2f} seconds")
                 
                 # Display intermediate steps for each agent)
                 for step in responses[agent]['steps']:
