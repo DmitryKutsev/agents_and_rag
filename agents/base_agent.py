@@ -4,9 +4,9 @@ class Agent():
     """Base class for all agents."""
     
     @abstractmethod 
-    def run_agent(self, query: str):
+    def run_agent(self, query: str): 
         """
-        Run the agent.
+        Run the agent and return the result and the time it took to run the agent.
         """
         pass
 

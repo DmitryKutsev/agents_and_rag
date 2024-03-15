@@ -4,6 +4,7 @@ from langchain.agents import AgentExecutor, create_react_agent, create_openai_to
 from langchain import hub
 from agents.base_agent import Agent
 from agents.tools.tools import *
+import time
 
 class SingleAgentSystem(Agent):
     def run_agent(self, query: str) -> str:
@@ -13,9 +14,11 @@ class SingleAgentSystem(Agent):
         if not self.agent:
             raise Exception("Agent not initialized.")
 
+        start = time.time()
         result = self.agent.invoke({"input": query})
-
-        return result
+        end = time.time()
+        
+        return result, end-start
 
 class ReactAgent(SingleAgentSystem):
     """

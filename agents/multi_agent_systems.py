@@ -12,6 +12,7 @@ from agents.tools.tools import *
 from langchain_core.messages import AIMessage
 from typing import Any, Dict, List
 from agents.base_agent import Agent
+import time
 
 
 class BaseAgentNode:
@@ -125,7 +126,10 @@ class AgentGraph(Agent):
 
     # Implements the run_agent method in the Agent class
     def run_agent(self, query: str) -> str:
-        return self.execute_graph(query)
+        start = time.time()
+        result = self.execute_graph(query)
+        end = time.time()
+        return result, end-start
     
     # Implement the format_agent_response method in the Agent class
     def format_agent_response(self, output):

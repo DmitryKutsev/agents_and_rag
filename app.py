@@ -39,8 +39,9 @@ if query_submitted and query_text and agent_selection:
 
         # Run the selected agents
         for agent in agent_selection:
-            response = agents_mapping[agent].run_agent(query_text)
+            response, time = agents_mapping[agent].run_agent(query_text)
             responses[agent] = agents_mapping[agent].format_agent_response(response)
+            responses[agent]['time'] = time
 
         # Setup columns for side by side display
         cols = st.columns(len(agent_selection))
